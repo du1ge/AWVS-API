@@ -10,7 +10,6 @@ parser.add_argument("-r", help = "URL 列表文件") # url列表名字
 parser.add_argument("-m", help = "最大扫描数") # 最大扫描数
 parser.add_argument("-t", help = "超过最大扫描数时的等待时间") # 超过最大扫描数时的等待时间
 args = parser.parse_args()
-
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning) # 关闭提示
 
 def get_scans_num(url, headers):
@@ -67,9 +66,12 @@ def add_targets(url_list, headers, total_target_url):
 
 
 def add_scans(add_scan_url, headers, total_target_url, count, target_id):
+    '''
+    添加扫描目标
+    '''
     count = count
     for i in target_id: # 速度设置
-        url = 'https://127.0.0.1:8080/api/v1/targets/' + str(i) + '/configuration'
+        url = 'https://127.0.0.1:3443/api/v1/targets/' + str(i) + '/configuration'
         data = {
                 "scan_speed":"moderate"
             }
@@ -82,13 +84,13 @@ def add_scans(add_scan_url, headers, total_target_url, count, target_id):
             scans_num = get_scans_num(dashbord_url, headers)
        
         data = {
-                    "target_id": str(i),
-                    "profile_id": "11111111-1111-1111-1111-111111111111",
-                    "schedule": {
-                                    "disable":False,
-                                    "start_date":None,
-                                    "time_sensitive":False
-                            }
+                "target_id": str(i),
+                "profile_id": "11111111-1111-1111-1111-111111111111",
+                "schedule": {
+                                "disable":False,
+                                "start_date":None,
+                                "time_sensitive":False
+                        }
             }
         r = requests.post(url = add_scan_url, data = json.dumps(data), headers = headers, verify = False).text
         count += 1
@@ -97,6 +99,7 @@ def add_scans(add_scan_url, headers, total_target_url, count, target_id):
         if count % int(args.m) == 0:
             print('检查扫描数中，等待十秒。。\n')
             time.sleep(10)
+    print('\n添加结束！\n')
             
 
 def main():
@@ -106,12 +109,11 @@ def main():
     add_scans(add_scan_url, headers, total_target_url, count, target_id)
 
 
-
 if __name__ == '__main__':
-    api_key = '1986ad8c0a5b3df4d7028d5f3c06e936cbc7c6d1bbd5b4420b1e4daf8d7e3bde4' # apikey
-    total_target_url = 'https://127.0.0.1:8080/api/v1/targets' # 获取所有目标信息
-    dashbord_url = 'https://127.0.0.1:8080/api/v1/me/stats' # 基本信息面板
-    add_scan_url = 'https://127.0.0.1:8080/api/v1/scans' # 添加扫描url
+    api_key = 'xxxxxxxxxx' # apikey
+    total_target_url = 'https://127.0.0.1:3443/api/v1/targets' # 获取所有目标信息
+    dashbord_url = 'https://127.0.0.1:3443/api/v1/me/stats' # 基本信息面板
+    add_scan_url = 'https://127.0.0.1:3443/api/v1/scans' # 添加扫描url
     headers = {
         'X-Auth': api_key,
         'Content-type': 'application/json'
