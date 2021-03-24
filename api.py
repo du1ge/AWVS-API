@@ -34,6 +34,7 @@ def get_target(target_file):
     try:
         with open(target_file, "r", encoding='utf-8') as f:
             content = f.read().splitlines()
+            content = list(set(content))
         return content
     except Exception as e:
         print("\n未找到文件！\n")
@@ -42,52 +43,35 @@ def get_target(target_file):
 
 def add_targets(url_list, headers, total_target_url):
     '''
-    添加目标，已有的不添加
+    添加目标
     '''
     count = 1
-
-    r = requests.get(url = total_target_url, headers = headers, verify = False).text
-    my_dict = json.loads(r)
-
-    for i in my_dict['targets']:
-        if str(i['address']) in url_list: # 获取已有目标
-            url_list.remove(str(i['address']))
-
-    if len(url_list) == 0:
-        print('\n目标已全部添加！\n')
-    
-    else:
-        zican_name = input('输入资产名字：\n')
-        for i in url_list:
-            data = {
-                "address" : str(i),
-                "description" : zican_name,
-                "criticality" : "20"
-            }
-            r = requests.post(url = total_target_url, headers = headers, verify = False, data = json.dumps(data))
-
-            #my_dict = json.loads(r)
-            #target_id.append(str(my_dict['target_id'])) # 返回已添加的target id
-            count += 1
-
-        print('\n本次添加了' + str(count-1) + '个目标\n')
-
-
-def add_scans(add_scan_url, headers, total_target_url, count):
-    count = count
     target_id = []
-    #sys.exit(0)
 
     r = requests.get(url = total_target_url, headers = headers, verify = False).text
-    my_dict = json.loads(r)
-    #print(my_dict)
     
-    for i in my_dict['targets']:
-        if i['last_scan_session_status'] == None: # 没扫过的就添加扫描
-            target_id.append(i['target_id'])
+    zican_name = input('输入资产名字：\n')
+    for i in url_list:
+        data = {
+            "address" : str(i),
+            "description" : zican_name,
+            "criticality" : "20"
+        }
+        r = requests.post(url = total_target_url, headers = headers, verify = False, data = json.dumps(data)).text
+        my_dict = json.loads(r)
+        target_id.append(my_dict["target_id"])
+        count += 1
 
+    print('\n本次添加了' + str(count-1) + '个目标\n')
+    return target_id
+
+
+def add_scans(add_scan_url, headers, total_target_url, count, target_id):
+    count = count
+    target_id = target_id
+    
     for i in target_id: # 速度设置
-        url = 'https://127.0.0.1:3443/api/v1/targets/' + str(i) + '/configuration'
+        url = 'https://127.0.0.1:8080/api/v1/targets/' + str(i) + '/configuration'
         data = {
                 "scan_speed":"moderate"
             }
@@ -97,7 +81,7 @@ def add_scans(add_scan_url, headers, total_target_url, count):
         if int(scans_num) >= int(args.m):
             print('\n当前扫描数已超过最大设定值，等待' + str(args.t) + '秒后再次扫描。\n')
             time.sleep(int(args.t))
-            add_scans(add_scan_url, headers, total_target_url, count)
+            add_scans(add_scan_url, headers, total_target_url, count, target_id)
 
         elif int(scans_num) < int(args.m):
             data = {
@@ -121,19 +105,18 @@ def add_scans(add_scan_url, headers, total_target_url, count):
 def main():
     count = 0
     target_list = get_target(args.r) # 获取url列表
-    add_targets(target_list, headers, total_target_url) # 添加目标
-    add_scans(add_scan_url, headers, total_target_url, count)    
+    target_id = add_targets(target_list, headers, total_target_url)
+    add_scans(add_scan_url, headers, total_target_url, count, target_id)
 
 
 
 if __name__ == '__main__':
-    api_key = '1986ad8c0a5b3df4d7028d5f3c06e936ce89601c61a9244cebd708814019c8adf' # apikey
-    total_target_url = 'https://127.0.0.1:3443/api/v1/targets' # 获取所有目标信息
-    dashbord_url = 'https://127.0.0.1:3443/api/v1/me/stats' # 基本信息面板
-    add_scan_url = 'https://127.0.0.1:3443/api/v1/scans' # 添加扫描url
+    api_key = '1986ad8c0a5b3df4d7028d5f3c06e936cbc7c6d1bbd5b4420b1e4daf8d7e3bde4' # apikey
+    total_target_url = 'https://127.0.0.1:8080/api/v1/targets' # 获取所有目标信息
+    dashbord_url = 'https://127.0.0.1:8080/api/v1/me/stats' # 基本信息面板
+    add_scan_url = 'https://127.0.0.1:8080/api/v1/scans' # 添加扫描url
     headers = {
         'X-Auth': api_key,
         'Content-type': 'application/json'
     }
     main()
-
