@@ -111,7 +111,7 @@ def main():
 
 
 if __name__ == '__main__':
-    api_key = '1986ad8c0a5b3df4d7028d5f3c06e936cbc7c6d1bbd5b4420b1e4daf8d7e3bde4' # apikey
+    api_key = 'xxxxxxxx' # apikey
     total_target_url = 'https://127.0.0.1:8080/api/v1/targets' # 获取所有目标信息
     dashbord_url = 'https://127.0.0.1:8080/api/v1/me/stats' # 基本信息面板
     add_scan_url = 'https://127.0.0.1:8080/api/v1/scans' # 添加扫描url
