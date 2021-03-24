@@ -68,8 +68,6 @@ def add_targets(url_list, headers, total_target_url):
 
 def add_scans(add_scan_url, headers, total_target_url, count, target_id):
     count = count
-    target_id = target_id
-    
     for i in target_id: # 速度设置
         url = 'https://127.0.0.1:8080/api/v1/targets/' + str(i) + '/configuration'
         data = {
@@ -78,28 +76,27 @@ def add_scans(add_scan_url, headers, total_target_url, count, target_id):
         r = requests.patch(url = url, data = json.dumps(data), headers = headers, verify = False)
         scans_num = get_scans_num(dashbord_url, headers) # 获取当前扫描数
         
-        if int(scans_num) >= int(args.m):
+        while int(scans_num) >= int(args.m):
             print('\n当前扫描数已超过最大设定值，等待' + str(args.t) + '秒后再次扫描。\n')
             time.sleep(int(args.t))
-            add_scans(add_scan_url, headers, total_target_url, count, target_id)
-
-        elif int(scans_num) < int(args.m):
-            data = {
-                        "target_id": str(i),
-                        "profile_id": "11111111-1111-1111-1111-111111111111",
-                        "schedule": {
-                                        "disable":False,
-                                        "start_date":None,
-                                        "time_sensitive":False
-                                }
-                }
-            r = requests.post(url = add_scan_url, data = json.dumps(data), headers = headers, verify = False).text
-            count += 1
-            print('添加第' + str(count) + '个目标扫描。\n')
-            time.sleep(1)
-            if count % int(args.m) == 0:
-                print('检查扫描数中，等待十秒。。\n')
-                time.sleep(10)
+            scans_num = get_scans_num(dashbord_url, headers)
+       
+        data = {
+                    "target_id": str(i),
+                    "profile_id": "11111111-1111-1111-1111-111111111111",
+                    "schedule": {
+                                    "disable":False,
+                                    "start_date":None,
+                                    "time_sensitive":False
+                            }
+            }
+        r = requests.post(url = add_scan_url, data = json.dumps(data), headers = headers, verify = False).text
+        count += 1
+        print('添加第' + str(count) + '个目标扫描。\n')
+        time.sleep(1)
+        if count % int(args.m) == 0:
+            print('检查扫描数中，等待十秒。。\n')
+            time.sleep(10)
             
 
 def main():
@@ -111,7 +108,7 @@ def main():
 
 
 if __name__ == '__main__':
-    api_key = 'xxxxxxxx' # apikey
+    api_key = '1986ad8c0a5b3df4d7028d5f3c06e936cbc7c6d1bbd5b4420b1e4daf8d7e3bde4' # apikey
     total_target_url = 'https://127.0.0.1:8080/api/v1/targets' # 获取所有目标信息
     dashbord_url = 'https://127.0.0.1:8080/api/v1/me/stats' # 基本信息面板
     add_scan_url = 'https://127.0.0.1:8080/api/v1/scans' # 添加扫描url
